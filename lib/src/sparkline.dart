@@ -292,6 +292,38 @@ class _SparklinePainter extends CustomPainter {
     }
   }
 
+  double _calcXForMarker(double x , double width) {
+    if ((x - 30) < 0)
+      return 0;
+    if ((x + 70) > width)
+      return width - 70;
+    return x - 30;
+  }
+
+  double _calcYForMarker(double y , double height) {
+    if ((y - 5) < 0)
+      return 5;
+    if (y > (height - 25))
+      return height - 25;
+    return y - 5;
+  }
+
+  void _drawMarker(Canvas context , String text , Offset offset) {
+    TextPainter tp = new TextPainter(
+        text: new TextSpan(
+            style: new TextStyle(
+                color: Colors.white ,
+                fontSize: 15.0 ,
+                backgroundColor: Colors.black ,
+                fontFamily: 'CircularPro-Book') ,
+            text: '€' + text.substring(0 , 7)
+        ) ,
+        textAlign: TextAlign.left ,
+        textDirection: TextDirection.ltr);
+    tp.layout();
+    tp.paint(context , offset);
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     double width = size.width - lineWidth;
@@ -330,6 +362,11 @@ class _SparklinePainter extends CustomPainter {
 
     final double widthNormalizer = width / dataPoints.length;
 
+    double maxValue = 0.0;
+    double minValue = 99999999.0;
+    Offset maxOffset = new Offset(0.0, 0.0);
+    Offset minOffset = new Offset(0.0, 0.0);
+
     for (int i = 0; i < dataPoints.length; i++) {
       double x = i * widthNormalizer + lineWidth / 2;
       double y =
@@ -337,6 +374,16 @@ class _SparklinePainter extends CustomPainter {
 
       if (pointsMode == PointsMode.all) {
         points.add(new Offset(x, y));
+      }
+
+      if (dataPoints[i] > maxValue) {
+        maxValue = dataPoints[i];
+        maxOffset = new Offset(_calcXForMarker(x, width), _calcYForMarker(y, height));
+      }
+
+      if (dataPoints[i] < minValue) {
+        minValue = dataPoints[i];
+        minOffset = new Offset(_calcXForMarker(x, width), _calcYForMarker(y, height));
       }
 
       if (pointsMode == PointsMode.last && i == dataPoints.length - 1) {
@@ -399,6 +446,9 @@ class _SparklinePainter extends CustomPainter {
         ..color = pointColor;
       canvas.drawPoints(ui.PointMode.points, points, pointsPaint);
     }
+
+    _drawMarker(canvas, maxValue.toString(), maxOffset);
+    _drawMarker(canvas, minValue.toString(), minOffset);
   }
 
   @override
