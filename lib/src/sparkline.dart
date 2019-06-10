@@ -74,6 +74,7 @@ class Sparkline extends StatelessWidget {
     this.gridLineWidth = 0.5,
     this.gridLineLabelColor = Colors.grey,
     this.labelPrefix = "\$",
+    this.enableMaxMin = false,
   })  : assert(data != null),
         assert(lineWidth != null),
         assert(lineColor != null),
@@ -182,6 +183,9 @@ class Sparkline extends StatelessWidget {
   /// Symbol prefix for grid line labels
   final String labelPrefix;
 
+  /// Calculate and show Max Min
+  final bool enableMaxMin;
+
   @override
   Widget build(BuildContext context) {
     return new LimitedBox(
@@ -206,7 +210,8 @@ class Sparkline extends StatelessWidget {
           gridLineAmount: gridLineAmount,
           gridLineLabelColor: gridLineLabelColor,
           gridLineWidth: gridLineWidth,
-          labelPrefix: labelPrefix
+          labelPrefix: labelPrefix,
+          enableMaxMin: enableMaxMin,
         ),
       ),
     );
@@ -214,26 +219,28 @@ class Sparkline extends StatelessWidget {
 }
 
 class _SparklinePainter extends CustomPainter {
+
   _SparklinePainter(
-    this.dataPoints, {
-    @required this.lineWidth,
-    @required this.lineColor,
-    this.lineGradient,
-    @required this.sharpCorners,
-    @required this.fillMode,
-    @required this.fillColor,
-    this.fillGradient,
-    @required this.pointsMode,
-    @required this.pointSize,
-    @required this.pointColor,
-    @required this.enableGridLines,
-    this.gridLineColor,
-    this.gridLineAmount,
-    this.gridLineWidth,
-    this.gridLineLabelColor,
-    this.labelPrefix
-    })  : _max = dataPoints.reduce(math.max),
-      _min = dataPoints.reduce(math.min);
+      this.dataPoints, {
+        @required this.lineWidth,
+        @required this.lineColor,
+        this.lineGradient,
+        @required this.sharpCorners,
+        @required this.fillMode,
+        @required this.fillColor,
+        this.fillGradient,
+        @required this.pointsMode,
+        @required this.pointSize,
+        @required this.pointColor,
+        @required this.enableGridLines,
+        this.gridLineColor,
+        this.gridLineAmount,
+        this.gridLineWidth,
+        this.gridLineLabelColor,
+        this.labelPrefix,
+        this.enableMaxMin,
+      })  : _max = dataPoints.reduce(math.max),
+        _min = dataPoints.reduce(math.min);
 
   final List<double> dataPoints;
 
@@ -260,6 +267,7 @@ class _SparklinePainter extends CustomPainter {
   final double gridLineWidth;
   final Color gridLineLabelColor;
   final String labelPrefix;
+  final bool enableMaxMin;
 
   List<TextPainter> gridLineTextPainters = [];
 
@@ -310,13 +318,14 @@ class _SparklinePainter extends CustomPainter {
 
   void _drawMarker(Canvas context , String text , Offset offset) {
     TextPainter tp = new TextPainter(
+
         text: new TextSpan(
             style: new TextStyle(
                 color: Colors.white ,
                 fontSize: 15.0 ,
                 backgroundColor: Colors.black ,
                 fontFamily: 'CircularPro-Book') ,
-            text: '€' + text.substring(0 , 7)
+            text: this.labelPrefix + text.substring(0 , 7)
         ) ,
         textAlign: TextAlign.left ,
         textDirection: TextDirection.ltr);
@@ -362,10 +371,10 @@ class _SparklinePainter extends CustomPainter {
 
     final double widthNormalizer = width / dataPoints.length;
 
-    double maxValue = 0.0;
-    double minValue = 99999999.0;
-    Offset maxOffset = new Offset(0.0, 0.0);
-    Offset minOffset = new Offset(0.0, 0.0);
+    double maxValue;
+    double minValue;
+    Offset maxOffset;
+    Offset minOffset;
 
     for (int i = 0; i < dataPoints.length; i++) {
       double x = i * widthNormalizer + lineWidth / 2;
@@ -376,12 +385,12 @@ class _SparklinePainter extends CustomPainter {
         points.add(new Offset(x, y));
       }
 
-      if (dataPoints[i] > maxValue) {
+      if (maxValue == null || dataPoints[i] > maxValue) {
         maxValue = dataPoints[i];
         maxOffset = new Offset(_calcXForMarker(x, width), _calcYForMarker(y, height));
       }
 
-      if (dataPoints[i] < minValue) {
+      if (minValue == null || dataPoints[i] < minValue) {
         minValue = dataPoints[i];
         minOffset = new Offset(_calcXForMarker(x, width), _calcYForMarker(y, height));
       }
@@ -446,9 +455,12 @@ class _SparklinePainter extends CustomPainter {
         ..color = pointColor;
       canvas.drawPoints(ui.PointMode.points, points, pointsPaint);
     }
-
-    _drawMarker(canvas, maxValue.toString(), maxOffset);
-    _drawMarker(canvas, minValue.toString(), minOffset);
+    if (this.enableMaxMin) {
+      if (maxValue !=null && maxOffset != null)
+        _drawMarker(canvas, maxValue.toString(), maxOffset);
+      if (minValue != null && minOffset != null)
+        _drawMarker(canvas, minValue.toString(), minOffset);
+    }
   }
 
   @override
