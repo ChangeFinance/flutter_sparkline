@@ -51,6 +51,13 @@ enum PointsMode {
 /// By default, the sparkline is sized to fit its container. If the
 /// sparkline is in an unbounded space, it will size itself according to the
 /// given [fallbackWidth] and [fallbackHeight].
+///
+/// By default, the sparkline is not paint anything after paint graph If the
+/// [onGraphPaint] is set then function to draw additions
+/// (custom labels as example).
+
+typedef OnGraphPaint = void Function(List<double> data, Canvas context, double width, double height);
+
 class Sparkline extends StatelessWidget {
   /// Creates a widget that represents provided [data] in a Sparkline chart.
   Sparkline({
@@ -74,7 +81,7 @@ class Sparkline extends StatelessWidget {
     this.gridLineWidth = 0.5,
     this.gridLineLabelColor = Colors.grey,
     this.labelPrefix = "\$",
-    this.enableMaxMin = false,
+    this.onGraphPaint
   })  : assert(data != null),
         assert(lineWidth != null),
         assert(lineColor != null),
@@ -183,8 +190,8 @@ class Sparkline extends StatelessWidget {
   /// Symbol prefix for grid line labels
   final String labelPrefix;
 
-  /// Calculate and show Max Min
-  final bool enableMaxMin;
+  /// Paint after paint of graph
+  final OnGraphPaint onGraphPaint;
 
   @override
   Widget build(BuildContext context) {
@@ -194,24 +201,24 @@ class Sparkline extends StatelessWidget {
       child: new CustomPaint(
         size: Size.infinite,
         painter: new _SparklinePainter(
-          data,
-          lineWidth: lineWidth,
-          lineColor: lineColor,
-          lineGradient: lineGradient,
-          sharpCorners: sharpCorners,
-          fillMode: fillMode,
-          fillColor: fillColor,
-          fillGradient: fillGradient,
-          pointsMode: pointsMode,
-          pointSize: pointSize,
-          pointColor: pointColor,
-          enableGridLines: enableGridLines,
-          gridLineColor: gridLineColor,
-          gridLineAmount: gridLineAmount,
-          gridLineLabelColor: gridLineLabelColor,
-          gridLineWidth: gridLineWidth,
-          labelPrefix: labelPrefix,
-          enableMaxMin: enableMaxMin,
+            data,
+            lineWidth: lineWidth,
+            lineColor: lineColor,
+            lineGradient: lineGradient,
+            sharpCorners: sharpCorners,
+            fillMode: fillMode,
+            fillColor: fillColor,
+            fillGradient: fillGradient,
+            pointsMode: pointsMode,
+            pointSize: pointSize,
+            pointColor: pointColor,
+            enableGridLines: enableGridLines,
+            gridLineColor: gridLineColor,
+            gridLineAmount: gridLineAmount,
+            gridLineLabelColor: gridLineLabelColor,
+            gridLineWidth: gridLineWidth,
+            labelPrefix: labelPrefix,
+            onGraphPaint: onGraphPaint
         ),
       ),
     );
@@ -219,7 +226,6 @@ class Sparkline extends StatelessWidget {
 }
 
 class _SparklinePainter extends CustomPainter {
-
   _SparklinePainter(
       this.dataPoints, {
         @required this.lineWidth,
@@ -238,7 +244,7 @@ class _SparklinePainter extends CustomPainter {
         this.gridLineWidth,
         this.gridLineLabelColor,
         this.labelPrefix,
-        this.enableMaxMin,
+        this.onGraphPaint
       })  : _max = dataPoints.reduce(math.max),
         _min = dataPoints.reduce(math.min);
 
@@ -267,7 +273,7 @@ class _SparklinePainter extends CustomPainter {
   final double gridLineWidth;
   final Color gridLineLabelColor;
   final String labelPrefix;
-  final bool enableMaxMin;
+  final OnGraphPaint onGraphPaint;
 
   List<TextPainter> gridLineTextPainters = [];
 
@@ -298,39 +304,6 @@ class _SparklinePainter extends CustomPainter {
         gridLineTextPainters[i].layout();
       }
     }
-  }
-
-  double _calcXForMarker(double x , double width) {
-    if ((x - 30) < 0)
-      return 0;
-    if ((x + 70) > width)
-      return width - 70;
-    return x - 30;
-  }
-
-  double _calcYForMarker(double y , double height) {
-    if ((y - 5) < 0)
-      return 5;
-    if (y > (height - 25))
-      return height - 25;
-    return y - 5;
-  }
-
-  void _drawMarker(Canvas context , String text , Offset offset) {
-    TextPainter tp = new TextPainter(
-
-        text: new TextSpan(
-            style: new TextStyle(
-                color: Colors.white ,
-                fontSize: 15.0 ,
-                backgroundColor: Colors.black ,
-                fontFamily: 'CircularPro-Book') ,
-            text: this.labelPrefix + text.substring(0 , 7)
-        ) ,
-        textAlign: TextAlign.left ,
-        textDirection: TextDirection.ltr);
-    tp.layout();
-    tp.paint(context , offset);
   }
 
   @override
@@ -371,11 +344,6 @@ class _SparklinePainter extends CustomPainter {
 
     final double widthNormalizer = width / dataPoints.length;
 
-    double maxValue;
-    double minValue;
-    Offset maxOffset;
-    Offset minOffset;
-
     for (int i = 0; i < dataPoints.length; i++) {
       double x = i * widthNormalizer + lineWidth / 2;
       double y =
@@ -383,16 +351,6 @@ class _SparklinePainter extends CustomPainter {
 
       if (pointsMode == PointsMode.all) {
         points.add(new Offset(x, y));
-      }
-
-      if (maxValue == null || dataPoints[i] > maxValue) {
-        maxValue = dataPoints[i];
-        maxOffset = new Offset(_calcXForMarker(x, width), _calcYForMarker(y, height));
-      }
-
-      if (minValue == null || dataPoints[i] < minValue) {
-        minValue = dataPoints[i];
-        minOffset = new Offset(_calcXForMarker(x, width), _calcYForMarker(y, height));
       }
 
       if (pointsMode == PointsMode.last && i == dataPoints.length - 1) {
@@ -455,11 +413,8 @@ class _SparklinePainter extends CustomPainter {
         ..color = pointColor;
       canvas.drawPoints(ui.PointMode.points, points, pointsPaint);
     }
-    if (this.enableMaxMin) {
-      if (maxValue !=null && maxOffset != null)
-        _drawMarker(canvas, maxValue.toString(), maxOffset);
-      if (minValue != null && minOffset != null)
-        _drawMarker(canvas, minValue.toString(), minOffset);
+    if (onGraphPaint!=null) {
+      onGraphPaint(dataPoints, canvas, width, height);
     }
   }
 
