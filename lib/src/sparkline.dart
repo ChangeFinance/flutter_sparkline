@@ -56,7 +56,7 @@ enum PointsMode {
 /// [onGraphPaint] is set then function to draw additions
 /// (custom labels as example).
 
-typedef OnGraphPaint = void Function(List<double> data, Canvas context, double width, double height);
+typedef OnGraphPaint = void Function(Canvas context, double width, double height);
 
 class Sparkline extends StatelessWidget {
   /// Creates a widget that represents provided [data] in a Sparkline chart.
@@ -414,7 +414,7 @@ class _SparklinePainter extends CustomPainter {
       canvas.drawPoints(ui.PointMode.points, points, pointsPaint);
     }
     if (onGraphPaint!=null) {
-      onGraphPaint(dataPoints, canvas, width, height);
+      onGraphPaint(canvas, width, height);
     }
   }
 
