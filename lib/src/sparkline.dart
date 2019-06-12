@@ -201,24 +201,24 @@ class Sparkline extends StatelessWidget {
       child: new CustomPaint(
         size: Size.infinite,
         painter: new _SparklinePainter(
-            data,
-            lineWidth: lineWidth,
-            lineColor: lineColor,
-            lineGradient: lineGradient,
-            sharpCorners: sharpCorners,
-            fillMode: fillMode,
-            fillColor: fillColor,
-            fillGradient: fillGradient,
-            pointsMode: pointsMode,
-            pointSize: pointSize,
-            pointColor: pointColor,
-            enableGridLines: enableGridLines,
-            gridLineColor: gridLineColor,
-            gridLineAmount: gridLineAmount,
-            gridLineLabelColor: gridLineLabelColor,
-            gridLineWidth: gridLineWidth,
-            labelPrefix: labelPrefix,
-            onGraphPaint: onGraphPaint
+          data,
+          lineWidth: lineWidth,
+          lineColor: lineColor,
+          lineGradient: lineGradient,
+          sharpCorners: sharpCorners,
+          fillMode: fillMode,
+          fillColor: fillColor,
+          fillGradient: fillGradient,
+          pointsMode: pointsMode,
+          pointSize: pointSize,
+          pointColor: pointColor,
+          enableGridLines: enableGridLines,
+          gridLineColor: gridLineColor,
+          gridLineAmount: gridLineAmount,
+          gridLineLabelColor: gridLineLabelColor,
+          gridLineWidth: gridLineWidth,
+          labelPrefix: labelPrefix,
+          onGraphPaint: onGraphPaint
         ),
       ),
     );
@@ -227,26 +227,26 @@ class Sparkline extends StatelessWidget {
 
 class _SparklinePainter extends CustomPainter {
   _SparklinePainter(
-      this.dataPoints, {
-        @required this.lineWidth,
-        @required this.lineColor,
-        this.lineGradient,
-        @required this.sharpCorners,
-        @required this.fillMode,
-        @required this.fillColor,
-        this.fillGradient,
-        @required this.pointsMode,
-        @required this.pointSize,
-        @required this.pointColor,
-        @required this.enableGridLines,
-        this.gridLineColor,
-        this.gridLineAmount,
-        this.gridLineWidth,
-        this.gridLineLabelColor,
-        this.labelPrefix,
-        this.onGraphPaint
-      })  : _max = dataPoints.reduce(math.max),
-        _min = dataPoints.reduce(math.min);
+    this.dataPoints, {
+    @required this.lineWidth,
+    @required this.lineColor,
+    this.lineGradient,
+    @required this.sharpCorners,
+    @required this.fillMode,
+    @required this.fillColor,
+    this.fillGradient,
+    @required this.pointsMode,
+    @required this.pointSize,
+    @required this.pointColor,
+    @required this.enableGridLines,
+    this.gridLineColor,
+    this.gridLineAmount,
+    this.gridLineWidth,
+    this.gridLineLabelColor,
+    this.labelPrefix,
+    this.onGraphPaint
+  })  : _max = dataPoints.reduce(math.max),
+    _min = dataPoints.reduce(math.min);
 
   final List<double> dataPoints;
 
