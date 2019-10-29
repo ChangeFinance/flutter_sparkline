@@ -246,7 +246,10 @@ class _SparklinePainter extends CustomPainter {
     this.labelPrefix,
     this.onGraphPaint
     })  : _max = dataPoints.reduce(math.max),
-      _min = dataPoints.reduce(math.min);
+      _min = dataPoints.reduce(math.min) {
+    _isFlat = _min == _max;
+  }
+
 
   final List<double> dataPoints;
 
@@ -266,6 +269,7 @@ class _SparklinePainter extends CustomPainter {
 
   final double _max;
   final double _min;
+  bool _isFlat;
 
   final bool enableGridLines;
   final Color gridLineColor;
@@ -282,7 +286,9 @@ class _SparklinePainter extends CustomPainter {
       double gridLineValue;
       for (int i = 0; i < gridLineAmount; i++) {
         // Label grid lines
-        gridLineValue = _max - (((_max - _min) / (gridLineAmount - 1)) * i);
+        gridLineValue = _isFlat
+              ? 2 * _max - (((2 * _max) / (gridLineAmount - 1)) * i)
+              : _max - (((_max - _min) / (gridLineAmount - 1)) * i);
 
         String gridLineText;
         if (gridLineValue < 1) {
@@ -310,7 +316,7 @@ class _SparklinePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     double width = size.width - lineWidth;
     final double height = size.height - lineWidth;
-    final double heightNormalizer = height / (_max - _min);
+    final double heightNormalizer =  _isFlat ? 1 : height / (_max - _min);
 
     final Path path = new Path();
     final List<Offset> points = <Offset>[];
@@ -346,8 +352,9 @@ class _SparklinePainter extends CustomPainter {
 
     for (int i = 0; i < dataPoints.length; i++) {
       double x = i * widthNormalizer + lineWidth / 2;
-      double y =
-          height - (dataPoints[i] - _min) * heightNormalizer + lineWidth / 2;
+      double y = _isFlat
+          ? height / 2
+          : height - (dataPoints[i] - _min) * heightNormalizer + lineWidth / 2;
 
       if (pointsMode == PointsMode.all) {
         points.add(new Offset(x, y));
