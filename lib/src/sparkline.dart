@@ -72,7 +72,7 @@ class Sparkline extends StatelessWidget {
     this.pointColor = const Color(0xFF0277BD), //Colors.lightBlue[800]
     this.sharpCorners = false,
     this.useCubicSmoothing = false,
-    this.cubicSmoothingFactor = 0.15,
+    this.cubicSmoothingFactor = 0.25,
     this.fillMode = FillMode.none,
     this.fillColor = const Color(0xFF81D4FA), //Colors.lightBlue[200]
     this.fillGradient,
