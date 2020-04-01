@@ -59,6 +59,12 @@ enum PointsMode {
 /// By default, the sparkline is sized to fit its container. If the
 /// sparkline is in an unbounded space, it will size itself according to the
 /// given [fallbackWidth] and [fallbackHeight].
+///
+/// By default, the sparkline is not paint anything after paint graph.
+/// If the [onGraphPaint] is set, then function draws additions
+///
+typedef OnGraphPaint = void Function(Canvas context, double width, double height);
+
 class Sparkline extends StatelessWidget {
   /// Creates a widget that represents provided [data] in a Sparkline chart.
   Sparkline({
@@ -84,6 +90,7 @@ class Sparkline extends StatelessWidget {
     this.gridLineWidth = 0.5,
     this.gridLineLabelColor = Colors.grey,
     this.labelPrefix = "\$",
+    this.onGraphPaint,
     this.max,
     this.min,
   })  : assert(data != null),
@@ -208,6 +215,9 @@ class Sparkline extends StatelessWidget {
   /// Symbol prefix for grid line labels
   final String labelPrefix;
 
+  /// Draw after paint of graph
+  final OnGraphPaint onGraphPaint;
+
   /// The maximum value for the rendering box. Will default to the largest
   /// value in [data].
   final double max;
@@ -243,6 +253,7 @@ class Sparkline extends StatelessWidget {
           gridLineLabelColor: gridLineLabelColor,
           gridLineWidth: gridLineWidth,
           labelPrefix: labelPrefix,
+          onGraphPaint: onGraphPaint,
           max: max,
           min: min,
         ),
@@ -272,6 +283,7 @@ class _SparklinePainter extends CustomPainter {
     @required this.gridLineWidth,
     @required this.gridLineLabelColor,
     @required this.labelPrefix,
+    this.onGraphPaint,
     double max,
     double min,
   })  : _max = max != null ? max : dataPoints.reduce(math.max),
@@ -304,6 +316,7 @@ class _SparklinePainter extends CustomPainter {
   final double gridLineWidth;
   final Color gridLineLabelColor;
   final String labelPrefix;
+  final OnGraphPaint onGraphPaint;
 
   List<TextPainter> gridLineTextPainters = [];
 
@@ -456,6 +469,10 @@ class _SparklinePainter extends CustomPainter {
         ..strokeWidth = pointSize
         ..color = pointColor;
       canvas.drawPoints(ui.PointMode.points, points, pointsPaint);
+    }
+
+    if (onGraphPaint != null) {
+      onGraphPaint(canvas, width, height);
     }
   }
 
